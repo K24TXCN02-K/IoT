@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react'
 import {
   Cloud,
   Droplets,
@@ -9,6 +10,7 @@ import {
 } from 'lucide-react'
 import RelayCard from './components/RelayCard.jsx'
 import SensorCard from './components/SensorCard.jsx'
+import ThemeToggle from './components/ThemeToggle.jsx'
 import { useSensorData } from './hooks/useSensorData.js'
 
 const formatDateTime = (current) => {
@@ -21,6 +23,16 @@ const formatDateTime = (current) => {
 
 function App() {
   const { current, connected, error, refresh } = useSensorData()
+  const [darkMode, setDarkMode] = useState(() => {
+    const stored = localStorage.getItem('iot-theme')
+    if (stored) return stored === 'dark'
+    return window.matchMedia?.('(prefers-color-scheme: dark)').matches ?? false
+  })
+
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', darkMode)
+    localStorage.setItem('iot-theme', darkMode ? 'dark' : 'light')
+  }, [darkMode])
 
   const currentTemperature = current?.temperature ?? '--'
   const currentHumidity = current?.humidity ?? '--'
@@ -31,6 +43,15 @@ function App() {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
+      <div className="pointer-events-none fixed inset-x-0 top-0 h-72 bg-gradient-to-b from-sky-100/80 via-cyan-50/20 to-transparent dark:from-sky-950/25 dark:via-slate-950/20" />
+
+      {/* Top navigation bar */}
+      <nav className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-xl dark:border-slate-800/80 dark:bg-slate-950/80">
+        <div className="mx-auto flex max-w-[1500px] items-center justify-end px-4 py-2 sm:px-6 lg:px-8">
+          <ThemeToggle darkMode={darkMode} onToggle={() => setDarkMode((value) => !value)} />
+        </div>
+      </nav>
+
       <main className="relative mx-auto max-w-[1500px] px-4 py-7 sm:px-6 lg:px-8 lg:py-10">
         <header className="mb-7 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
           <div>
