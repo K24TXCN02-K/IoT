@@ -1,9 +1,14 @@
 import {
   Cloud,
+  Droplets,
+  Lightbulb,
   RefreshCw,
+  Thermometer,
   Wifi,
   WifiOff,
 } from 'lucide-react'
+import RelayCard from './components/RelayCard.jsx'
+import SensorCard from './components/SensorCard.jsx'
 import { useSensorData } from './hooks/useSensorData.js'
 
 const formatDateTime = (current) => {
@@ -16,6 +21,12 @@ const formatDateTime = (current) => {
 
 function App() {
   const { current, connected, error, refresh } = useSensorData()
+
+  const currentTemperature = current?.temperature ?? '--'
+  const currentHumidity = current?.humidity ?? '--'
+  const lightState = current?.lightState
+    ? String(current.lightState).toUpperCase() === 'DARK' ? 'Tối' : 'Sáng'
+    : '--'
   const updatedAt = formatDateTime(current)
 
   return (
@@ -70,6 +81,33 @@ function App() {
             {error}
           </div>
         ) : null}
+
+        <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+          <SensorCard
+            title="Nhiệt độ hiện tại"
+            value={currentTemperature}
+            unit="°C"
+            subtitle={updatedAt}
+            icon={Thermometer}
+            accent="sky"
+          />
+          <SensorCard
+            title="Độ ẩm hiện tại"
+            value={currentHumidity}
+            unit="%"
+            subtitle={updatedAt}
+            icon={Droplets}
+            accent="cyan"
+          />
+          <SensorCard
+            title="Ánh sáng"
+            value={lightState}
+            subtitle={`Digital: ${current?.lightDigital ?? '--'}`}
+            icon={Lightbulb}
+            accent="amber"
+          />
+          <RelayCard relay1={current?.relay1} relay2={current?.relay2} />
+        </section>
 
         <footer className="mt-7 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
           <span>ESP32 · Firebase Realtime Database</span>
