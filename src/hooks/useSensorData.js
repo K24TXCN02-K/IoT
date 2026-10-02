@@ -62,11 +62,48 @@ export function useSensorData() {
   useEffect(() => {
     fetchInitialData()
 
+    let stream
+
+    try {
+      stream = new EventSource(`${DATABASE_URL}/sensor/current.json`)
+
+      const handleFirebaseEvent = (event) => {
+        try {
+          const payload = JSON.parse(event.data)
+          if (!payload || !('data' in payload)) return
+
+          if (payload.path === '/' || !payload.path) {
+            setCurrent(payload.data)
+          } else {
+            const key = payload.path.replace(/^\//, '').split('/')[0]
+            setCurrent((previous) => ({
+              ...(previous || {}),
+              [key]: payload.data,
+            }))
+          }
+
+          setConnected(true)
+          setError(null)
+        } catch {
+          // Ignore malformed stream event and keep the last good value.
+        }
+      }
+
+      stream.addEventListener('put', handleFirebaseEvent)
+      stream.addEventListener('patch', handleFirebaseEvent)
+
+      stream.onopen = () => setConnected(true)
+      stream.onerror = () => setConnected(false)
+    } catch {
+      setConnected(false)
+    }
+
     historyTimer.current = window.setInterval(() => {
       fetchHistory().catch((err) => setError(err.message))
     }, 15000)
 
     return () => {
+      stream?.close()
       if (historyTimer.current) window.clearInterval(historyTimer.current)
     }
   }, [fetchHistory, fetchInitialData])
