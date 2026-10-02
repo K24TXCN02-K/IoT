@@ -54,15 +54,15 @@ export default function HomePage() {
             </li>
             <li className="flex justify-between gap-4">
               <span>Nguyễn Thanh Hải</span>
-              <span className="tabular-nums text-slate-400 dark:text-slate-500">B21DCXX002</span>
+              <span className="tabular-nums text-slate-400 dark:text-slate-500">K24DTCN052</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Trương Thị Thúy Quỳnh</span>
-              <span className="tabular-nums text-slate-400 dark:text-slate-500">B21DCXX003</span>
+              <span className="tabular-nums text-slate-400 dark:text-slate-500">K24DTCN083</span>
             </li>
             <li className="flex justify-between gap-4">
               <span>Vũ Đức Chiến</span>
-              <span className="tabular-nums text-slate-400 dark:text-slate-500">B21DCXX004</span>
+              <span className="tabular-nums text-slate-400 dark:text-slate-500">K24DTCN047</span>
             </li>
           </ul>
         </div>
