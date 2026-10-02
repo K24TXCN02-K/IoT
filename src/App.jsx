@@ -14,6 +14,7 @@ import LightDonutChart from './components/LightDonutChart.jsx'
 import LightTimelineChart from './components/LightTimelineChart.jsx'
 import MetricLineChart from './components/MetricLineChart.jsx'
 import RelayCard from './components/RelayCard.jsx'
+import RelayHistoryTable from './components/RelayHistoryTable.jsx'
 import SensorCard from './components/SensorCard.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { useSensorData } from './hooks/useSensorData.js'
@@ -267,6 +268,14 @@ function App() {
           <ChartShell title="Tỷ lệ thời gian TỐI / SÁNG" subtitle="Theo thời lượng trong khoảng thời gian đang chọn">
             <LightDonutChart darkSeconds={lightSummary.dark} brightSeconds={lightSummary.bright} />
           </ChartShell>
+        </section>
+
+        <section className="panel mt-4 p-5 sm:p-6">
+          <div className="mb-5">
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Lịch sử Relay</h2>
+            <p className="mt-1 text-xs text-slate-400 dark:text-slate-500">Các lần thay đổi trạng thái đóng/mở</p>
+          </div>
+          <RelayHistoryTable data={filteredData} />
         </section>
 
         <footer className="mt-7 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
