@@ -9,6 +9,7 @@ import {
   WifiOff,
 } from 'lucide-react'
 import ChartShell from './components/ChartShell.jsx'
+import DualMetricChart from './components/DualMetricChart.jsx'
 import MetricLineChart from './components/MetricLineChart.jsx'
 import RelayCard from './components/RelayCard.jsx'
 import SensorCard from './components/SensorCard.jsx'
@@ -214,6 +215,10 @@ function App() {
               gradientId="humidityGradient"
               stroke="#06b6d4"
             />
+          </ChartShell>
+
+          <ChartShell title={"Nhiệt độ & Độ ẩm"} subtitle="Biểu đồ kết hợp" className="xl:col-span-2">
+            <DualMetricChart data={filteredData} />
           </ChartShell>
         </section>
 
