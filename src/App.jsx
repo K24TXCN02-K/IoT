@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import ChartShell from './components/ChartShell.jsx'
 import DualMetricChart from './components/DualMetricChart.jsx'
+import LightTimelineChart from './components/LightTimelineChart.jsx'
 import MetricLineChart from './components/MetricLineChart.jsx'
 import RelayCard from './components/RelayCard.jsx'
 import SensorCard from './components/SensorCard.jsx'
@@ -219,6 +220,10 @@ function App() {
 
           <ChartShell title={"Nhiệt độ & Độ ẩm"} subtitle="Biểu đồ kết hợp" className="xl:col-span-2">
             <DualMetricChart data={filteredData} />
+          </ChartShell>
+
+          <ChartShell title="Trạng thái ánh sáng theo thời gian" subtitle="Cảm biến digital: SÁNG / TỐI">
+            <LightTimelineChart data={filteredData} />
           </ChartShell>
         </section>
 
