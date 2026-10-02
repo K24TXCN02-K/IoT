@@ -10,6 +10,7 @@ import {
 } from 'lucide-react'
 import ChartShell from './components/ChartShell.jsx'
 import DualMetricChart from './components/DualMetricChart.jsx'
+import LightDonutChart from './components/LightDonutChart.jsx'
 import LightTimelineChart from './components/LightTimelineChart.jsx'
 import MetricLineChart from './components/MetricLineChart.jsx'
 import RelayCard from './components/RelayCard.jsx'
@@ -39,6 +40,39 @@ const formatDateTime = (current) => {
   const date = new Date(Number(current.timestamp) * 1000)
   if (Number.isNaN(date.getTime())) return '--'
   return date.toLocaleString('vi-VN')
+}
+
+const isDark = (item) => String(item.lightState).toUpperCase() === 'DARK' || Number(item.lightDigital) === 1
+
+const median = (values) => {
+  if (!values.length) return 0
+  const sorted = [...values].sort((a, b) => a - b)
+  return sorted[Math.floor(sorted.length / 2)]
+}
+
+const getLightDurations = (rows) => {
+  if (!rows.length) return { dark: 0, bright: 0 }
+
+  const gaps = rows
+    .slice(1)
+    .map((item, index) => Number(item.timestamp) - Number(rows[index].timestamp))
+    .filter((value) => value > 0)
+  const fallbackGap = median(gaps) || 1
+
+  return rows.reduce(
+    (acc, item, index) => {
+      const nextTimestamp = Number(rows[index + 1]?.timestamp)
+      const duration = nextTimestamp > Number(item.timestamp)
+        ? nextTimestamp - Number(item.timestamp)
+        : fallbackGap
+
+      if (isDark(item)) acc.dark += duration
+      else acc.bright += duration
+
+      return acc
+    },
+    { dark: 0, bright: 0 },
+  )
 }
 
 function App() {
@@ -74,6 +108,10 @@ function App() {
       displayTime: formatTime(item.timestamp),
     }))
   }, [history, filter])
+
+  const lightSummary = useMemo(() => {
+    return getLightDurations(filteredData)
+  }, [filteredData])
 
   const currentTemperature = current?.temperature ?? '--'
   const currentHumidity = current?.humidity ?? '--'
@@ -224,6 +262,10 @@ function App() {
 
           <ChartShell title="Trạng thái ánh sáng theo thời gian" subtitle="Cảm biến digital: SÁNG / TỐI">
             <LightTimelineChart data={filteredData} />
+          </ChartShell>
+
+          <ChartShell title="Tỷ lệ thời gian TỐI / SÁNG" subtitle="Theo thời lượng trong khoảng thời gian đang chọn">
+            <LightDonutChart darkSeconds={lightSummary.dark} brightSeconds={lightSummary.bright} />
           </ChartShell>
         </section>
 
