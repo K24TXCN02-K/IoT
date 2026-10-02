@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import {
   Cloud,
   Droplets,
@@ -8,10 +8,28 @@ import {
   Wifi,
   WifiOff,
 } from 'lucide-react'
+import ChartShell from './components/ChartShell.jsx'
+import MetricLineChart from './components/MetricLineChart.jsx'
 import RelayCard from './components/RelayCard.jsx'
 import SensorCard from './components/SensorCard.jsx'
 import ThemeToggle from './components/ThemeToggle.jsx'
 import { useSensorData } from './hooks/useSensorData.js'
+
+const FILTERS = [
+  { id: '30m', label: '30 phút', ms: 30 * 60 * 1000 },
+  { id: '1h', label: '1 giờ', ms: 60 * 60 * 1000 },
+  { id: '6h', label: '6 giờ', ms: 6 * 60 * 60 * 1000 },
+  { id: '24h', label: '24 giờ', ms: 24 * 60 * 60 * 1000 },
+  { id: 'all', label: 'Tất cả', ms: null },
+]
+
+const pad = (value) => String(value).padStart(2, '0')
+
+const formatTime = (timestamp) => {
+  const date = new Date(Number(timestamp) * 1000)
+  if (Number.isNaN(date.getTime())) return '--:--'
+  return `${pad(date.getHours())}:${pad(date.getMinutes())}`
+}
 
 const formatDateTime = (current) => {
   if (current?.datetime) return current.datetime
@@ -22,7 +40,8 @@ const formatDateTime = (current) => {
 }
 
 function App() {
-  const { current, connected, error, refresh } = useSensorData()
+  const { current, history, connected, loading, error, refresh } = useSensorData()
+  const [filter, setFilter] = useState('6h')
   const [darkMode, setDarkMode] = useState(() => {
     const stored = localStorage.getItem('iot-theme')
     if (stored) return stored === 'dark'
@@ -33,6 +52,26 @@ function App() {
     document.documentElement.classList.toggle('dark', darkMode)
     localStorage.setItem('iot-theme', darkMode ? 'dark' : 'light')
   }, [darkMode])
+
+  const filteredData = useMemo(() => {
+    if (!history.length) return []
+
+    const selected = FILTERS.find((item) => item.id === filter)
+    const newestMs = Number(history[history.length - 1]?.timestamp || 0) * 1000
+    const cutoff = selected?.ms ? newestMs - selected.ms : null
+
+    const rows = cutoff
+      ? history.filter((item) => Number(item.timestamp) * 1000 >= cutoff)
+      : history
+
+    return rows.map((item) => ({
+      ...item,
+      temperature: Number(item.temperature),
+      humidity: Number(item.humidity),
+      lightDigital: Number(item.lightDigital),
+      displayTime: formatTime(item.timestamp),
+    }))
+  }, [history, filter])
 
   const currentTemperature = current?.temperature ?? '--'
   const currentHumidity = current?.humidity ?? '--'
@@ -128,6 +167,54 @@ function App() {
             accent="amber"
           />
           <RelayCard relay1={current?.relay1} relay2={current?.relay2} />
+        </section>
+
+        <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Lịch sử cảm biến</h2>
+            <p className="text-xs text-slate-400 dark:text-slate-500">
+              {loading ? 'Đang tải dữ liệu...' : `${filteredData.length} bản ghi đang hiển thị`}
+            </p>
+          </div>
+          <div className="flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-slate-200 bg-white p-1 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            {FILTERS.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setFilter(item.id)}
+                className={`whitespace-nowrap rounded-xl px-3 py-2 text-xs font-bold transition ${filter === item.id
+                  ? 'bg-slate-900 text-white dark:bg-white dark:text-slate-950'
+                  : 'text-slate-500 hover:bg-slate-100 dark:text-slate-400 dark:hover:bg-slate-800'
+                  }`}
+              >
+                {item.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <section className="mt-4 grid gap-4 xl:grid-cols-2">
+          <ChartShell title="Nhiệt độ theo thời gian" subtitle="Dữ liệu DHT22">
+            <MetricLineChart
+              data={filteredData}
+              dataKey="temperature"
+              name="Nhiệt độ"
+              unit="°C"
+              gradientId="temperatureGradient"
+              stroke="#0ea5e9"
+            />
+          </ChartShell>
+
+          <ChartShell title="Độ ẩm theo thời gian" subtitle="Dữ liệu DHT22">
+            <MetricLineChart
+              data={filteredData}
+              dataKey="humidity"
+              name="Độ ẩm"
+              unit="%"
+              gradientId="humidityGradient"
+              stroke="#06b6d4"
+            />
+          </ChartShell>
         </section>
 
         <footer className="mt-7 flex flex-col gap-2 border-t border-slate-200 pt-5 text-xs text-slate-400 dark:border-slate-800 dark:text-slate-500 sm:flex-row sm:items-center sm:justify-between">
